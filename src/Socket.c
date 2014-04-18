@@ -18,16 +18,19 @@
  */
 #include "Socket.h"
 
-/*
- * !!(x)保证非0即1
- */
-#define G_LIKELY(x) __builtin_expect(!!(x), 1)
-#define G_UNLIKELY(x) __builtin_expect(!!(x), 0)
-
 static inline void sys_exit(const char *errString)
 {
 	perror(errString);
 	exit(errno);
+}
+
+ssize_t Read(int fildes, void *buf, size_t nbytes)
+{
+	ssize_t readn = read(fildes, buf, nbytes);
+	if (G_UNLIKELY(readn < 0)) {
+		sys_exit("read error");
+	}
+	return readn;
 }
 
 int Socket(int family, int type, int protocol)
@@ -72,4 +75,59 @@ int Listen(int sockfd, int backlog)
 		sys_exit("Fail to mark sockfd as a passive socket");
 	}
 	return ret;
+}
+
+int Accept(int sockfd, struct sockaddr *address, socklen_t * address_len)
+{
+	int fd = accept(sockfd, address, address_len);
+	if (G_UNLIKELY(fd < 0)) {
+		sys_exit("Fail to accept connection");
+	}
+	return fd;
+}
+
+void *Malloc(size_t size)
+{
+	void *ptr = malloc(size);
+	if (G_UNLIKELY(ptr == NULL)) {
+		sys_exit("Fail to allocate memroy");
+	}
+	return ptr;
+}
+
+void Free(void *ptr)
+{
+	if (ptr == NULL)
+		return;
+	free(ptr);
+}
+
+int Pthread_create(pthread_t * thread, const pthread_attr_t * attr,
+				   void *(*start_routine) (void *), void *arg)
+{
+	int ret = pthread_create(thread, attr, start_routine, arg);
+	if (G_UNLIKELY(ret != 0)) {
+		errno = ret;
+		sys_exit("Fail to create POSIX thread");
+	}
+	return ret;
+}
+
+int Pthread_detach(pthread_t thread)
+{
+	int ret = pthread_detach(thread);
+	if (G_UNLIKELY(ret != 0)) {
+		errno = ret;
+		sys_exit("Fail to detach POSIX thread");
+	}
+	return ret;
+}
+
+sighandler_t Signal(int signum, sighandler_t handler)
+{
+	sighandler_t prev = signal(signum, handler);
+	if (G_UNLIKELY(prev == SIG_ERR)) {
+		sys_exit("Fail to set signal handler");
+	}
+	return prev;
 }

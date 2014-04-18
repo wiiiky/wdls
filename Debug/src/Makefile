@@ -92,8 +92,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_wdls_OBJECTS = main.$(OBJEXT) Socket.$(OBJEXT) net.$(OBJEXT) \
-	arg.$(OBJEXT)
+am_wdls_OBJECTS = wdls-main.$(OBJEXT) wdls-Socket.$(OBJEXT) \
+	wdls-net.$(OBJEXT) wdls-arg.$(OBJEXT) wdls-http.$(OBJEXT)
 wdls_OBJECTS = $(am_wdls_OBJECTS)
 wdls_DEPENDENCIES =
 AM_V_lt = $(am__v_lt_$(V))
@@ -101,7 +101,7 @@ am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 wdls_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(wdls_CFLAGS) $(CFLAGS) \
 	$(wdls_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
@@ -294,8 +294,11 @@ wdls_SOURCES = \
 	net.h \
 	net.c \
 	arg.c \
-	arg.h
+	arg.h \
+	http.h \
+	http.c
 
+wdls_CFLAGS = -pthread 
 wdls_LDFLAGS = 
 wdls_LDADD = 
 all: all-am
@@ -392,10 +395,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/Socket.Po
-include ./$(DEPDIR)/arg.Po
-include ./$(DEPDIR)/main.Po
-include ./$(DEPDIR)/net.Po
+include ./$(DEPDIR)/wdls-Socket.Po
+include ./$(DEPDIR)/wdls-arg.Po
+include ./$(DEPDIR)/wdls-http.Po
+include ./$(DEPDIR)/wdls-main.Po
+include ./$(DEPDIR)/wdls-net.Po
 
 .c.o:
 	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -417,6 +421,76 @@ include ./$(DEPDIR)/net.Po
 #	$(AM_V_CC)source='$<' object='$@' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(LTCOMPILE) -c -o $@ $<
+
+wdls-main.o: main.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-main.o -MD -MP -MF $(DEPDIR)/wdls-main.Tpo -c -o wdls-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-main.Tpo $(DEPDIR)/wdls-main.Po
+#	$(AM_V_CC)source='main.c' object='wdls-main.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+wdls-main.obj: main.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-main.obj -MD -MP -MF $(DEPDIR)/wdls-main.Tpo -c -o wdls-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-main.Tpo $(DEPDIR)/wdls-main.Po
+#	$(AM_V_CC)source='main.c' object='wdls-main.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+wdls-Socket.o: Socket.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-Socket.o -MD -MP -MF $(DEPDIR)/wdls-Socket.Tpo -c -o wdls-Socket.o `test -f 'Socket.c' || echo '$(srcdir)/'`Socket.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-Socket.Tpo $(DEPDIR)/wdls-Socket.Po
+#	$(AM_V_CC)source='Socket.c' object='wdls-Socket.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-Socket.o `test -f 'Socket.c' || echo '$(srcdir)/'`Socket.c
+
+wdls-Socket.obj: Socket.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-Socket.obj -MD -MP -MF $(DEPDIR)/wdls-Socket.Tpo -c -o wdls-Socket.obj `if test -f 'Socket.c'; then $(CYGPATH_W) 'Socket.c'; else $(CYGPATH_W) '$(srcdir)/Socket.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-Socket.Tpo $(DEPDIR)/wdls-Socket.Po
+#	$(AM_V_CC)source='Socket.c' object='wdls-Socket.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-Socket.obj `if test -f 'Socket.c'; then $(CYGPATH_W) 'Socket.c'; else $(CYGPATH_W) '$(srcdir)/Socket.c'; fi`
+
+wdls-net.o: net.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-net.o -MD -MP -MF $(DEPDIR)/wdls-net.Tpo -c -o wdls-net.o `test -f 'net.c' || echo '$(srcdir)/'`net.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-net.Tpo $(DEPDIR)/wdls-net.Po
+#	$(AM_V_CC)source='net.c' object='wdls-net.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-net.o `test -f 'net.c' || echo '$(srcdir)/'`net.c
+
+wdls-net.obj: net.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-net.obj -MD -MP -MF $(DEPDIR)/wdls-net.Tpo -c -o wdls-net.obj `if test -f 'net.c'; then $(CYGPATH_W) 'net.c'; else $(CYGPATH_W) '$(srcdir)/net.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-net.Tpo $(DEPDIR)/wdls-net.Po
+#	$(AM_V_CC)source='net.c' object='wdls-net.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-net.obj `if test -f 'net.c'; then $(CYGPATH_W) 'net.c'; else $(CYGPATH_W) '$(srcdir)/net.c'; fi`
+
+wdls-arg.o: arg.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-arg.o -MD -MP -MF $(DEPDIR)/wdls-arg.Tpo -c -o wdls-arg.o `test -f 'arg.c' || echo '$(srcdir)/'`arg.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-arg.Tpo $(DEPDIR)/wdls-arg.Po
+#	$(AM_V_CC)source='arg.c' object='wdls-arg.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-arg.o `test -f 'arg.c' || echo '$(srcdir)/'`arg.c
+
+wdls-arg.obj: arg.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-arg.obj -MD -MP -MF $(DEPDIR)/wdls-arg.Tpo -c -o wdls-arg.obj `if test -f 'arg.c'; then $(CYGPATH_W) 'arg.c'; else $(CYGPATH_W) '$(srcdir)/arg.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-arg.Tpo $(DEPDIR)/wdls-arg.Po
+#	$(AM_V_CC)source='arg.c' object='wdls-arg.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-arg.obj `if test -f 'arg.c'; then $(CYGPATH_W) 'arg.c'; else $(CYGPATH_W) '$(srcdir)/arg.c'; fi`
+
+wdls-http.o: http.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-http.o -MD -MP -MF $(DEPDIR)/wdls-http.Tpo -c -o wdls-http.o `test -f 'http.c' || echo '$(srcdir)/'`http.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-http.Tpo $(DEPDIR)/wdls-http.Po
+#	$(AM_V_CC)source='http.c' object='wdls-http.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-http.o `test -f 'http.c' || echo '$(srcdir)/'`http.c
+
+wdls-http.obj: http.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-http.obj -MD -MP -MF $(DEPDIR)/wdls-http.Tpo -c -o wdls-http.obj `if test -f 'http.c'; then $(CYGPATH_W) 'http.c'; else $(CYGPATH_W) '$(srcdir)/http.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-http.Tpo $(DEPDIR)/wdls-http.Po
+#	$(AM_V_CC)source='http.c' object='wdls-http.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-http.obj `if test -f 'http.c'; then $(CYGPATH_W) 'http.c'; else $(CYGPATH_W) '$(srcdir)/http.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

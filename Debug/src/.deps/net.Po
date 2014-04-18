@@ -30,7 +30,9 @@ net.o: /home/wiky/Documents/CODE/wdls/src/net.c \
  /usr/include/arpa/inet.h /usr/include/netinet/in.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.8.2/include/stdint.h \
  /usr/include/stdint.h /usr/include/bits/wchar.h /usr/include/bits/in.h \
- /usr/include/string.h /usr/include/xlocale.h
+ /usr/include/string.h /usr/include/xlocale.h /usr/include/pthread.h \
+ /usr/include/sched.h /usr/include/bits/sched.h \
+ /usr/include/bits/setjmp.h
 
 /usr/include/stdc-predef.h:
 
@@ -159,3 +161,11 @@ net.o: /home/wiky/Documents/CODE/wdls/src/net.c \
 /usr/include/string.h:
 
 /usr/include/xlocale.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/bits/sched.h:
+
+/usr/include/bits/setjmp.h:

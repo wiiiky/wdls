@@ -38,7 +38,7 @@
           <item name="AnjutaDebuggerLocals" orientation="horizontal" locked="no" iconified="no" closed="yes"/>
           <item name="AnjutaDebuggerWatch" orientation="vertical" locked="no" iconified="no" closed="yes"/>
           <item name="AnjutaDebuggerBreakpoints" orientation="vertical" locked="no" iconified="no" closed="yes"/>
-          <item name="AnjutaTerminal" orientation="vertical" locked="no" iconified="no" closed="yes"/>
+          <item name="AnjutaTerminal" orientation="vertical" locked="no" iconified="no" closed="no"/>
           <item name="AnjutaMessageView" orientation="vertical" locked="no" iconified="no" closed="no"/>
         </notebook>
       </paned>

@@ -30,6 +30,18 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <pthread.h>
+#include <signal.h>
+
+
+/*
+ * !!(x)保证非0即1
+ */
+#define G_LIKELY(x) __builtin_expect(!!(x), 1)
+#define G_UNLIKELY(x) __builtin_expect(!!(x), 0)
+
+/* ssize_t read(int fildes, void *buf, size_t nbyte); */
+ssize_t Read(int fildes, void *buf, size_t nbytes);
 
 /* int socket(int family,int type,int protocl) */
 int Socket(int family, int type, int protocl);
@@ -43,3 +55,25 @@ int Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 /* int listen(int sockfd, int backlog); */
 int Listen(int sockfd, int backlog);
+
+/* int accept(int socket, struct sockaddr *restrict address,
+            socklen_t *restrict address_len); */
+int Accept(int sockfd, struct sockaddr *address, socklen_t * address_len);
+
+/*  void *malloc(size_t size); */
+void *Malloc(size_t size);
+
+/* void free(void *ptr) */
+void Free(void *ptr);
+
+/* int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+            void *(*start_routine) (void *), void *arg); */
+int Pthread_create(pthread_t * thread, const pthread_attr_t * attr,
+				   void *(*start_routine) (void *), void *arg);
+
+/*  int pthread_detach(pthread_t thread); */
+int Pthread_detach(pthread_t thread);
+
+/* sighandler_t signal(int signum, sighandler_t handler); */
+typedef void (*sighandler_t) (int);
+sighandler_t Signal(int signum, sighandler_t handler);

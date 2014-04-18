@@ -18,6 +18,9 @@
  */
 #include "net.h"
 #include "arg.h"
+#include "http.h"
+
+static void signal_handler(int sigid);
 
 #define BACKLOG	 (10)
 
@@ -33,6 +36,24 @@ int main(int argc, char *argv[])
 	Bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
 	Listen(sockfd, BACKLOG);
 
+	/* 注册信号CTRL+C的回调函数 */
+	Signal(SIGINT, signal_handler);
+
+	int accfd;
+	HttpThreadArg *arg = http_thread_arg_new();
+	while ((accfd = Accept(sockfd, arg->addr, &arg->addrlen))) {
+		arg->sockfd = accfd;
+		http_thread(arg);
+	}
+
 	Close(sockfd);
 	return 0;
+}
+
+
+static void signal_handler(int sigid)
+{
+	printf("SIGINT is caught!\n");
+	printf("Cancelled by user!\n");
+	exit(0);
 }

@@ -20,7 +20,11 @@ wdls_SOURCES = \
 	net.h \
 	net.c \
 	arg.c \
-	arg.h
+	arg.h \
+	http.h \
+	http.c
+
+wdls_CFLAGS = -pthread 
 
 wdls_LDFLAGS = 
 
