@@ -49,7 +49,7 @@ int Socket(int family, int type, int protocol)
 int Close(int fd)
 {
 	if (G_UNLIKELY(close(fd) != 0)) {
-		sys_exit("Fail to close descriptor");
+		perror("Fail to close descriptor");
 	}
 	return 0;
 }

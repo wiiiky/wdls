@@ -101,7 +101,7 @@ char *http_readline(int sockfd)
 
 	char *line = NULL;
 	line = get_line(pdata);
-	if (line)
+	if (line)					/* 如果缓冲区已经有一整行，则直接返回该行 */
 		return line;
 
 	expand_buffer(pdata);

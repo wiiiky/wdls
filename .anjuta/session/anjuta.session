@@ -3,7 +3,7 @@ Maximized=1
 Geometry=1366x702+0+27
 
 [File Loader]
-Files=../../src/main.c#46%%%../../src/Socket.h#76%%%../../src/Socket.c#138%%%../../src/net.h#32%%%../../src/net.c#32%%%../../src/arg.h#40%%%../../src/arg.c#59%%%../../src/http.h#27%%%../../src/http.c#67%%%../../src/httpbuff.h#26%%%../../src/httpbuff.c#118
+Files=../../src/main.c#46%%%../../src/Socket.h#76%%%../../src/Socket.c#52%%%../../src/net.h#32%%%../../src/net.c#32%%%../../src/arg.h#40%%%../../src/arg.c#59%%%../../src/http.h#27%%%../../src/http.c#62%%%../../src/httpbuff.h#26%%%../../src/httpbuff.c#4%%%../../AUTHORS#1%%%../../COPYING#1%%%../../ChangeLog#1%%%../../INSTALL#1%%%../../NEWS#1%%%../../README#1
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
@@ -15,7 +15,7 @@ Working directories=../../../wdls
 
 [Project Manager]
 Shortcut=wdls//src//wdls
-Expand=wdls%%%wdls//src%%%wdls//src//wdls
+Expand=wdls%%%wdls//src%%%wdls//src//wdls%%%wdls//dist_doc
 
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized%%%1:MinGW32:MinGW32

@@ -57,17 +57,17 @@ static void *http_pthread(void *arg)
 	const struct sockaddr *addr = args->addr;
 	socklen_t addrlen = args->addrlen;
 
-	char buff[BUFFERSIZE];
-	int n;
-	//while ((n = Read(sockfd, buff, BUFFERSIZE))) {
-	//printf("%s", buff);
-	//}
 	char *line = NULL;
 	while ((line = http_readline(sockfd))) {
 		printf("%s!!\n", line);
+		if (line[0] == '\0') {	/* 空行，意味着首部结束 */
+			free(line);
+			break;
+		}
 		free(line);
 	}
 
+	Close(sockfd);
 	http_thread_arg_free(args);
 	printf("A HTTP thread quits\n");
 	return NULL;
