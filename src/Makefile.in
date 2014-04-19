@@ -93,7 +93,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_wdls_OBJECTS = wdls-main.$(OBJEXT) wdls-Socket.$(OBJEXT) \
-	wdls-net.$(OBJEXT) wdls-arg.$(OBJEXT) wdls-http.$(OBJEXT)
+	wdls-net.$(OBJEXT) wdls-arg.$(OBJEXT) wdls-http.$(OBJEXT) \
+	wdls-httpbuff.$(OBJEXT) wdls-utils.$(OBJEXT)
 wdls_OBJECTS = $(am_wdls_OBJECTS)
 wdls_DEPENDENCIES =
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -296,7 +297,11 @@ wdls_SOURCES = \
 	arg.c \
 	arg.h \
 	http.h \
-	http.c
+	http.c \
+	httpbuff.h \
+	httpbuff.c \
+	utils.h \
+	utils.c
 
 wdls_CFLAGS = -pthread 
 wdls_LDFLAGS = 
@@ -398,8 +403,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wdls-Socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wdls-arg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wdls-http.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wdls-httpbuff.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wdls-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wdls-net.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wdls-utils.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -491,6 +498,34 @@ wdls-http.obj: http.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='http.c' object='wdls-http.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-http.obj `if test -f 'http.c'; then $(CYGPATH_W) 'http.c'; else $(CYGPATH_W) '$(srcdir)/http.c'; fi`
+
+wdls-httpbuff.o: httpbuff.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-httpbuff.o -MD -MP -MF $(DEPDIR)/wdls-httpbuff.Tpo -c -o wdls-httpbuff.o `test -f 'httpbuff.c' || echo '$(srcdir)/'`httpbuff.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-httpbuff.Tpo $(DEPDIR)/wdls-httpbuff.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='httpbuff.c' object='wdls-httpbuff.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-httpbuff.o `test -f 'httpbuff.c' || echo '$(srcdir)/'`httpbuff.c
+
+wdls-httpbuff.obj: httpbuff.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-httpbuff.obj -MD -MP -MF $(DEPDIR)/wdls-httpbuff.Tpo -c -o wdls-httpbuff.obj `if test -f 'httpbuff.c'; then $(CYGPATH_W) 'httpbuff.c'; else $(CYGPATH_W) '$(srcdir)/httpbuff.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-httpbuff.Tpo $(DEPDIR)/wdls-httpbuff.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='httpbuff.c' object='wdls-httpbuff.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-httpbuff.obj `if test -f 'httpbuff.c'; then $(CYGPATH_W) 'httpbuff.c'; else $(CYGPATH_W) '$(srcdir)/httpbuff.c'; fi`
+
+wdls-utils.o: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-utils.o -MD -MP -MF $(DEPDIR)/wdls-utils.Tpo -c -o wdls-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-utils.Tpo $(DEPDIR)/wdls-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='utils.c' object='wdls-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+
+wdls-utils.obj: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -MT wdls-utils.obj -MD -MP -MF $(DEPDIR)/wdls-utils.Tpo -c -o wdls-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wdls-utils.Tpo $(DEPDIR)/wdls-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='utils.c' object='wdls-utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wdls_CFLAGS) $(CFLAGS) -c -o wdls-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

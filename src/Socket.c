@@ -26,8 +26,12 @@ static inline void sys_exit(const char *errString)
 
 ssize_t Read(int fildes, void *buf, size_t nbytes)
 {
-	ssize_t readn = read(fildes, buf, nbytes);
+	ssize_t readn;
+  AGAIN:
+	readn = read(fildes, buf, nbytes);
 	if (G_UNLIKELY(readn < 0)) {
+		if (errno == EAGAIN)
+			goto AGAIN;			/* 如果被中断，重试 */
 		sys_exit("read error");
 	}
 	return readn;
@@ -95,11 +99,44 @@ void *Malloc(size_t size)
 	return ptr;
 }
 
+void *Realloc(void *ptr, size_t size)
+{
+	void *ret = realloc(ptr, size);
+	if (G_UNLIKELY(ret == NULL)) {
+		sys_exit("Fail to re-allocate memory");
+	}
+	return ret;
+}
+
 void Free(void *ptr)
 {
 	if (ptr == NULL)
 		return;
 	free(ptr);
+}
+
+char *Strdup(const char *s)
+{
+	if (s == NULL)
+		return NULL;
+	char *ptr = strdup(s);
+	if (G_UNLIKELY(ptr == NULL)) {
+		sys_exit("Fail to duplicate a string");
+	}
+	return ptr;
+}
+
+char *Strndup(const char *s, size_t n)
+{
+	if (s == NULL)
+		return NULL;
+	if (n == 0)
+		return Strdup("\0");
+	char *ptr = strndup(s, n);
+	if (G_UNLIKELY(ptr == NULL)) {
+		sys_exit("Fail to duplicate a string");
+	}
+	return ptr;
 }
 
 int Pthread_create(pthread_t * thread, const pthread_attr_t * attr,

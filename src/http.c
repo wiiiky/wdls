@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "http.h"
+#include "httpbuff.h"
 
 
 #define BUFFERSIZE  (1024)
@@ -58,8 +59,13 @@ static void *http_pthread(void *arg)
 
 	char buff[BUFFERSIZE];
 	int n;
-	while ((n = Read(sockfd, buff, BUFFERSIZE))) {
-		printf("%s", buff);
+	//while ((n = Read(sockfd, buff, BUFFERSIZE))) {
+	//printf("%s", buff);
+	//}
+	char *line = NULL;
+	while ((line = http_readline(sockfd))) {
+		printf("%s!!\n", line);
+		free(line);
 	}
 
 	http_thread_arg_free(args);

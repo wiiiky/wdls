@@ -22,7 +22,11 @@ wdls_SOURCES = \
 	arg.c \
 	arg.h \
 	http.h \
-	http.c
+	http.c \
+	httpbuff.h \
+	httpbuff.c \
+	utils.h \
+	utils.c
 
 wdls_CFLAGS = -pthread 
 

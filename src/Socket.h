@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
@@ -63,8 +64,16 @@ int Accept(int sockfd, struct sockaddr *address, socklen_t * address_len);
 /*  void *malloc(size_t size); */
 void *Malloc(size_t size);
 
+/* void *realloc(void *ptr, size_t size); */
+void *Realloc(void *ptr, size_t size);
+
 /* void free(void *ptr) */
 void Free(void *ptr);
+
+/* char *strdup(const char *s); */
+char *Strdup(const char *s);
+/* char *strndup(const char *s, size_t n); */
+char *Strndup(const char *s, size_t n);
 
 /* int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
             void *(*start_routine) (void *), void *arg); */
