@@ -26,7 +26,9 @@ wdls_SOURCES = \
 	httpbuff.h \
 	httpbuff.c \
 	utils.h \
-	utils.c
+	utils.c \
+	list.h \
+	list.c
 
 wdls_CFLAGS = -pthread 
 

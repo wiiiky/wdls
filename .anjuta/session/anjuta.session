@@ -3,7 +3,7 @@ Maximized=1
 Geometry=1366x702+0+27
 
 [File Loader]
-Files=../../src/main.c#46%%%../../src/Socket.h#76%%%../../src/Socket.c#52%%%../../src/net.h#32%%%../../src/net.c#32%%%../../src/arg.h#40%%%../../src/arg.c#59%%%../../src/http.h#27%%%../../src/http.c#62%%%../../src/httpbuff.h#26%%%../../src/httpbuff.c#4%%%../../AUTHORS#1%%%../../COPYING#1%%%../../ChangeLog#1%%%../../INSTALL#1%%%../../NEWS#1%%%../../README#1
+Files=../../src/main.c#46%%%../../src/http.c#1%%%../../src/http.h#54%%%../../src/list.h#64%%%../../src/list.c#65
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
@@ -17,6 +17,9 @@ Working directories=../../../wdls
 Shortcut=wdls//src//wdls
 Expand=wdls%%%wdls//src%%%wdls//src//wdls%%%wdls//dist_doc
 
+[Debugger]
+Stop at beginning=2
+
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized%%%1:MinGW32:MinGW32
 Selected Configuration=Debug
@@ -24,6 +27,3 @@ BuildArgs/Default=--enable-maintainer-mode
 BuildArgs/Debug=--enable-maintainer-mode 'CFLAGS=-g -O0' 'CXXFLAGS=-g -O0' 'JFLAGS=-g -O0' 'FFLAGS=-g -O0'
 BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' 'JFLAGS=-g -pg' 'FFLAGS=-g -pg'
 BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
-
-[Debugger]
-Stop at beginning=2

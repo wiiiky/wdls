@@ -20,6 +20,47 @@
  * http处理
  */
 #include "Socket.h"
+#include "list.h"
+
+/* HTTP 方法 */
+typedef enum {
+	HTTP_GET,
+	HTTP_POST,
+	HTTP_HEAD,
+	/* ... */
+} HttpMethod;
+
+/* HTTP 版本 */
+typedef enum {
+	HTTP_0_9,					/* HTTP/0.9 */
+	HTTP_1_0,					/* HTTP/1.0 */
+	HTTP_1_1,					/* HTTP/1.1 */
+} HttpVersion;
+
+/* 
+ * URL最大长度1023,实际中的HTTP服务器一般允许更大的值，比如8192，甚至更大.
+ * RFC中描述，HTTP协议没有指定最大的URL长度，要求服务器尽可能处理长URL，
+ * 如果服务器无法处理过长URL，返回414
+ */
+#define HTTP_URL_MAX	(1024)
+
+/* HTTP 请求的起始行 */
+typedef struct {
+	HttpMethod method;
+	char url[HTTP_URL_MAX];
+	HttpVersion version;
+} HttpStartLine;
+
+/* HTTP首部字段 name: value */
+typedef struct {
+	char *name;
+	char *value;
+} HttpHeader;
+
+typedef struct {
+	HttpStartLine startLine;
+	Dlist *headers;				/* HttpHeader 的双向链表 */
+} HttpRequest;
 
 /* 线程的参数 */
 typedef struct {
