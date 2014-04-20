@@ -108,6 +108,15 @@ void *Realloc(void *ptr, size_t size)
 	return ret;
 }
 
+void *Memcpy(void *dest, const void *src, size_t n)
+{
+	void *ptr = memcpy(dest, src, n);
+	if (G_UNLIKELY(ptr == NULL)) {
+		sys_exit("Fail to copy memroy");
+	}
+	return ptr;
+}
+
 void Free(void *ptr)
 {
 	if (ptr == NULL)

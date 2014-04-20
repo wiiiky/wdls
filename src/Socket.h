@@ -70,6 +70,9 @@ void *Realloc(void *ptr, size_t size);
 /* void free(void *ptr) */
 void Free(void *ptr);
 
+/*  void *memcpy(void *dest, const void *src, size_t n); */
+void *Memcpy(void *dest, const void *src, size_t n);
+
 /* char *strdup(const char *s); */
 char *Strdup(const char *s);
 /* char *strndup(const char *s, size_t n); */

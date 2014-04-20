@@ -50,6 +50,9 @@ typedef struct {
 	char url[HTTP_URL_MAX];
 	HttpVersion version;
 } HttpStartLine;
+HttpStartLine *http_start_line_new(HttpMethod method,
+								   const char *url, HttpVersion version);
+void http_start_line_free(HttpStartLine * line);
 
 /* HTTP首部字段 name: value */
 typedef struct {
@@ -57,8 +60,11 @@ typedef struct {
 	char *value;
 } HttpHeader;
 
+HttpHeader *http_header_new(const char *name, const char *value);
+void http_header_free(HttpHeader * header);
+
 typedef struct {
-	HttpStartLine startLine;
+	HttpStartLine *startLine;
 	Dlist *headers;				/* HttpHeader 的双向链表 */
 } HttpRequest;
 

@@ -72,3 +72,34 @@ static void *http_pthread(void *arg)
 	printf("A HTTP thread quits\n");
 	return NULL;
 }
+
+HttpStartLine *http_start_line_new(HttpMethod method,
+								   const char *url, HttpVersion version)
+{
+	HttpStartLine *line = (HttpStartLine *) Malloc(sizeof(HttpStartLine));
+	line->method = method;
+	Memcpy(line->url, url, HTTP_URL_MAX - 1);
+	line->version = version;
+	return line;
+}
+
+void http_start_line_free(HttpStartLine * line)
+{
+	Free(line);
+}
+
+HttpHeader *http_header_new(const char *name, const char *value)
+{
+	HttpHeader *header = (HttpHeader *) Malloc(sizeof(HttpHeader));
+	header->name = Strdup(name);
+	header->value = Strdup(value);
+}
+
+void http_header_free(HttpHeader * header)
+{
+	if (header == NULL)
+		return;
+	Free(header->name);
+	Free(header->value);
+	Free(header);
+}
