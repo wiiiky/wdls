@@ -52,6 +52,8 @@ typedef struct {
 } HttpStartLine;
 HttpStartLine *http_start_line_new(HttpMethod method,
 								   const char *url, HttpVersion version);
+/* 从HTTP的起始行中解析，成功返回HttpStartLine结构的指针，失败NULL */
+HttpStartLine *http_start_line_parse(const char *line);
 void http_start_line_free(HttpStartLine * line);
 
 /* HTTP首部字段 name: value */
@@ -67,6 +69,8 @@ typedef struct {
 	HttpStartLine *startLine;
 	Dlist *headers;				/* HttpHeader 的双向链表 */
 } HttpRequest;
+HttpRequest *http_request_new();
+void http_request_free(HttpRequest * req);
 
 /* 线程的参数 */
 typedef struct {

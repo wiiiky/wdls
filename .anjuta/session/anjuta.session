@@ -2,16 +2,16 @@
 Maximized=1
 Geometry=1366x702+0+27
 
+[File Loader]
+Files=../../src/main.c#29%%%../../src/http.c#174%%%../../src/http.h#56%%%../../src/list.h#51%%%../../src/list.c#65%%%../../src/Socket.h#85%%%../../src/Socket.c#165
+
+[Document Manager]
+bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
+
 [Execution]
 Program uri=../../Debug/src/wdls
 Run in terminal=2
 Working directories=../../../wdls
-
-[File Loader]
-Files=../../src/main.c#46%%%../../src/http.c#77%%%../../src/http.h#55%%%../../src/list.h#51%%%../../src/list.c#65%%%../../src/Socket.h#74%%%../../src/Socket.c#117
-
-[Document Manager]
-bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Project Manager]
 Shortcut=wdls//src//wdls

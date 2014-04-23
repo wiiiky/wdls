@@ -58,8 +58,13 @@ static void *http_pthread(void *arg)
 	socklen_t addrlen = args->addrlen;
 
 	char *line = NULL;
+	int start = 1;
 	while ((line = http_readline(sockfd))) {
-		printf("%s!!\n", line);
+		if (!start) {			/* 首行 */
+
+		} else {
+			start = 0;
+		}
 		if (line[0] == '\0') {	/* 空行，意味着首部结束 */
 			free(line);
 			break;
@@ -83,6 +88,96 @@ HttpStartLine *http_start_line_new(HttpMethod method,
 	return line;
 }
 
+/*
+ * 解析 GET /index.html HTTP/1.1
+ * 第一：必须是被空格分开的三部分，不允许tab
+ * 第二：第一部分必须是GET、POST等方法名，必须大写
+ * 第三：第二部分在这里任意
+ * 第四：第三部分必须是HTTP/0.9、HTTP/1.0、HTTP/1.1中的一个
+ */
+HttpStartLine *http_start_line_parse(const char *line)
+{
+	if (line == NULL)
+		return NULL;
+
+	char *first = NULL;
+	char *second = NULL;
+	char *third = NULL;
+	HttpStartLine *startLine = NULL;
+
+	int i = 0;
+	int cur = 0;
+	int start, end;
+	while (line[i] != '\0') {
+		switch (cur) {
+		case 0:				/* 刚开始，还没有解析到任何数据，如果有空格，可以忽略 */
+			if (line[i] != ' ') {
+				/* 遇到非空格字符,认为是第一部分的内容 */
+				cur++;
+				start = i;
+			}
+			break;
+		case 1:				/* 正在处理第一部分 */
+			if (line[i] == ' ') {
+				/* 第一部分结束,复制 */
+				end = i;
+				first = Strndup(line + start, end - start);
+				cur++;
+			}
+			break;
+		case 2:				/* 第一部分与第二部分的空格区域 */
+			if (line[i] != ' ') {
+				cur++;
+				start = i;
+			}
+			break;
+		case 3:
+			if (line[i] == ' ') {
+				end = i;
+				cur++;
+				second = Strndup(line + start, end - start);
+			}
+			break;
+		case 4:
+			if (line[i] != ' ') {
+				cur++;
+				start = i;
+			}
+			break;
+		case 5:
+			if (line[i] == ' ') {
+				end = i;
+				cur++;
+				third = Strndup(line + start, end - start);
+			}
+			break;
+		default:
+			if (line[i] != ' ') {
+				/* 末尾有多余内容 */
+				goto OUT;
+			}
+			break;
+		}
+		i++;
+	}
+
+	if (first && second && end <= start)
+		third = Strndup(line + start, i - start);
+	if (first == NULL || second == NULL || third == NULL)
+		goto OUT;
+
+	/* 目前只支持GET和HTTP/1.1 */
+	if (Strcmp(first, "GET") || Strcmp(third, "HTTP/1.1"))
+		goto OUT;
+
+	startLine = http_start_line_new(HTTP_GET, second, HTTP_1_1);
+  OUT:
+	Free(first);
+	Free(second);
+	Free(third);
+	return startLine;
+}
+
 void http_start_line_free(HttpStartLine * line)
 {
 	Free(line);
@@ -102,4 +197,22 @@ void http_header_free(HttpHeader * header)
 	Free(header->name);
 	Free(header->value);
 	Free(header);
+}
+
+HttpRequest *http_request_new()
+{
+	HttpRequest *req = (HttpRequest *) Malloc(sizeof(HttpRequest));
+	req->startLine = NULL;
+	req->headers = NULL;
+}
+
+void http_request_free(HttpRequest * req)
+{
+	if (req == NULL)
+		return;
+	if (req->startLine)
+		http_start_line_free(req->startLine);
+	if (req->headers)
+		dlist_free_full(req->headers, (DestroyNotify) http_header_free);
+	Free(req);
 }

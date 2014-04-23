@@ -148,6 +148,24 @@ char *Strndup(const char *s, size_t n)
 	return ptr;
 }
 
+char *Strncpy(char *dest, const char *src, size_t n)
+{
+	if (src == NULL)
+		return NULL;
+	char *ptr = strncpy(dest, src, n);
+	if (G_UNLIKELY(ptr == NULL)) {
+		sys_exit("Fail to copy a string");
+	}
+	return ptr;
+}
+
+int Strcmp(const char *s1, const char *s2)
+{
+	if (G_UNLIKELY(s1 == NULL || s2 == NULL))
+		return -1;
+	return strcmp(s1, s2);
+}
+
 int Pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 				   void *(*start_routine) (void *), void *arg)
 {

@@ -78,6 +78,12 @@ char *Strdup(const char *s);
 /* char *strndup(const char *s, size_t n); */
 char *Strndup(const char *s, size_t n);
 
+/* char *strncpy(char *dest, const char *src, size_t n); */
+char *Strncpy(char *dest, const char *src, size_t n);
+
+/* int strcmp(const char *s1, const char *s2); */
+int Strcmp(const char *s1, const char *s2);
+
 /* int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
             void *(*start_routine) (void *), void *arg); */
 int Pthread_create(pthread_t * thread, const pthread_attr_t * attr,
