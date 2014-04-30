@@ -18,5 +18,4 @@ LT_INIT
 AC_OUTPUT([
 Makefile
 src/Makefile
-
 ])

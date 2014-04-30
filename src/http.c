@@ -83,11 +83,11 @@ static void *httpPthread(void *arg)
 		Free(line);
 	}
 
+	printf("%s\n",http_start_line_to_string(request->startLine));
 	Dlist *headers = request->headers;
 	while (headers) {
 		HttpHeader *header = (HttpHeader *) headers->data;
 		printf("%s:%s\n", header->name, header->value);
-
 		headers = dlist_next(headers);
 	}
 
@@ -107,6 +107,41 @@ HttpStartLine *http_start_line_new(HttpMethod method,
 	Memcpy(line->url, url, HTTP_URL_MAX - 1);
 	line->version = version;
 	return line;
+}
+char *http_start_line_to_string(HttpStartLine *line)
+{
+	if(line==NULL){
+		return NULL;
+	}
+	const char *method=NULL;
+	switch(line->method){
+		case HTTP_GET:
+			method="GET";
+			break;
+		case HTTP_POST:
+			method="POST";
+			break;
+		default:
+			return NULL;
+	}
+
+	const char *version=NULL;
+	switch(line->version){
+		case HTTP_1_1:
+			version="HTTP/1.1";
+			break;
+		case HTTP_1_0:
+			version="HTTP/1.0";
+			break;
+		default:
+			return NULL;
+	}
+
+	int len=strlen(method)+strlen(version)+4;
+	char *string=(char*)Malloc(sizeof(char)*len);
+	snprintf(string,len,"%s %s %s",method,line->url,version);
+
+	return string;
 }
 
 /*
@@ -299,7 +334,11 @@ HttpHeader *http_header_parse(const char *line)
 		Free(value);
 		return NULL;
 	}
-	HttpHeader *header = http_header_new(name, value);
+	char *name_d=deleteRedundantSpace(name);
+	char *value_d=deleteRedundantSpace(value);
+	HttpHeader *header = http_header_new(name_d, value_d);
+	Free(name_d);
+	Free(value_d);
 	Free(name);
 	Free(value);
 	return header;
@@ -319,8 +358,9 @@ static char *deleteRedundantSpace(const char *str)
 				end = str;
 			}
 		} else if (*str != ' ') {
-			end = start;		/* 最后一个不是空格的位置 */
+			end = str;		/* 最后一个不是空格的位置 */
 		}
+		str++;
 	}
 	if (start == NULL) {		/* 这种情况是字符串str全空格 */
 		return Strdup("");

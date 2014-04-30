@@ -55,6 +55,7 @@ HttpStartLine *http_start_line_new(HttpMethod method,
 /* 从HTTP的起始行中解析，成功返回HttpStartLine结构的指针，失败NULL */
 HttpStartLine *http_start_line_parse(const char *line);
 void http_start_line_free(HttpStartLine * line);
+char *http_start_line_to_string(HttpStartLine *line);
 
 /* HTTP首部字段 name: value */
 typedef struct {
