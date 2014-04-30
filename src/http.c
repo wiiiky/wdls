@@ -22,13 +22,15 @@
 
 #define BUFFERSIZE  (1024)
 
-static void *http_pthread(void *arg);
+static void *httpPthread(void *arg);
+
+/* 删除字符串首尾的空格 */
+static char *deleteRedundantSpace(const char *str);
 
 HttpThreadArg *http_thread_arg_new(void)
 {
 	HttpThreadArg *arg = (HttpThreadArg *) Malloc(sizeof(HttpThreadArg));
-	arg->addr =
-		(struct sockaddr *) Malloc(sizeof(struct sockaddr_storage));
+	memset(&arg->addr, 0, sizeof(struct sockaddr_storage));
 	arg->addrlen = sizeof(struct sockaddr_storage);
 	arg->sockfd = -1;
 	return arg;
@@ -38,7 +40,6 @@ void http_thread_arg_free(HttpThreadArg * arg)
 {
 	if (G_UNLIKELY(arg == NULL))
 		return;
-	Free(arg->addr);
 	Free(arg);
 }
 
@@ -46,33 +47,53 @@ void http_thread_arg_free(HttpThreadArg * arg)
 void http_thread(HttpThreadArg * arg)
 {
 	pthread_t tid;
-	Pthread_create(&tid, NULL, http_pthread, arg);
+	Pthread_create(&tid, NULL, httpPthread, arg);
 	Pthread_detach(tid);
 }
 
-static void *http_pthread(void *arg)
+static void *httpPthread(void *arg)
 {
 	HttpThreadArg *args = (HttpThreadArg *) arg;
 	int sockfd = args->sockfd;
-	const struct sockaddr *addr = args->addr;
 	socklen_t addrlen = args->addrlen;
 
 	char *line = NULL;
-	int start = 1;
+	int first = 1;
+	/* 
+	 * 获取http请求
+	 * 请求中HTTP首行必须是有效的，
+	 * 其他首部可有可无
+	 */
+	HttpRequest *request = http_request_new();
 	while ((line = http_readline(sockfd))) {
-		if (!start) {			/* 首行 */
-
-		} else {
-			start = 0;
-		}
-		if (line[0] == '\0') {	/* 空行，意味着首部结束 */
-			free(line);
+		if (line == NULL) {		/* 出错 */
+			goto CLOSE;
+		} else if (line[0] == '\0') {	/* 空行，意味着首部结束 */
+			Free(line);
 			break;
+		} else if (first) {		/* 首行 */
+			first = 0;
+			request->startLine = http_start_line_parse(line);	/* 解析首行 */
+			if (request->startLine == NULL) {
+				goto CLOSE;
+			}
+		} else {				/* HTTP首部 */
+			http_request_add_header_from_line(request, line);
 		}
-		free(line);
+		Free(line);
 	}
 
+	Dlist *headers = request->headers;
+	while (headers) {
+		HttpHeader *header = (HttpHeader *) headers->data;
+		printf("%s:%s\n", header->name, header->value);
+
+		headers = dlist_next(headers);
+	}
+
+  CLOSE:
 	Close(sockfd);
+	http_request_free(request);
 	http_thread_arg_free(args);
 	printf("A HTTP thread quits\n");
 	return NULL;
@@ -107,7 +128,7 @@ HttpStartLine *http_start_line_parse(const char *line)
 
 	int i = 0;
 	int cur = 0;
-	int start, end;
+	int start = 0, end = 0;
 	while (line[i] != '\0') {
 		switch (cur) {
 		case 0:				/* 刚开始，还没有解析到任何数据，如果有空格，可以忽略 */
@@ -188,6 +209,7 @@ HttpHeader *http_header_new(const char *name, const char *value)
 	HttpHeader *header = (HttpHeader *) Malloc(sizeof(HttpHeader));
 	header->name = Strdup(name);
 	header->value = Strdup(value);
+	return header;
 }
 
 void http_header_free(HttpHeader * header)
@@ -204,6 +226,47 @@ HttpRequest *http_request_new()
 	HttpRequest *req = (HttpRequest *) Malloc(sizeof(HttpRequest));
 	req->startLine = NULL;
 	req->headers = NULL;
+	return req;
+}
+
+void http_request_add_header(HttpRequest * req, HttpHeader * header)
+{
+	if (req == NULL || header == NULL) {
+		return;
+	}
+	req->headers = dlist_append(req->headers, header);
+}
+
+void http_request_add_header_from_line(HttpRequest * req, const char *line)
+{
+	if (req == NULL || line == NULL) {
+		return;
+	}
+	HttpHeader *header = http_header_parse(line);
+	if (header == NULL) {
+		return;
+	}
+	http_request_add_header(req, header);
+}
+
+void http_request_add_start_line(HttpRequest * req,
+								 HttpStartLine * startLine)
+{
+	if (req == NULL) {
+		return;
+	}
+	http_start_line_free(req->startLine);
+	req->startLine = startLine;
+}
+
+void http_request_add_start_line_from_line(HttpRequest * req,
+										   const char *line)
+{
+	if (req == NULL || line == NULL) {
+		return;
+	}
+	HttpStartLine *startLine = http_start_line_parse(line);
+	http_request_add_start_line(req, startLine);
 }
 
 void http_request_free(HttpRequest * req)
@@ -215,4 +278,53 @@ void http_request_free(HttpRequest * req)
 	if (req->headers)
 		dlist_free_full(req->headers, (DestroyNotify) http_header_free);
 	Free(req);
+}
+
+/* 解析HTTP首部，生成HttpHeader结构 */
+HttpHeader *http_header_parse(const char *line)
+{
+	if (G_UNLIKELY(line == NULL)) {
+		return NULL;
+	}
+
+	char *semicolon = strchr(line, ':');
+	if (semicolon == NULL) {	/* 没有找到分号，解析失败 */
+		return NULL;
+	}
+
+	char *name = Strndup(line, semicolon - line);
+	char *value = Strdup(semicolon + 1);
+	if (G_UNLIKELY(name == NULL || value == NULL)) {
+		Free(name);
+		Free(value);
+		return NULL;
+	}
+	HttpHeader *header = http_header_new(name, value);
+	Free(name);
+	Free(value);
+	return header;
+}
+
+static char *deleteRedundantSpace(const char *str)
+{
+	if (G_UNLIKELY(str == NULL)) {
+		return NULL;
+	}
+	const char *start = NULL;
+	const char *end = NULL;
+	while (*str) {
+		if (start == NULL) {
+			if (*str != ' ') {
+				start = str;	/* 第一个不是空格的位置 */
+				end = str;
+			}
+		} else if (*str != ' ') {
+			end = start;		/* 最后一个不是空格的位置 */
+		}
+	}
+	if (start == NULL) {		/* 这种情况是字符串str全空格 */
+		return Strdup("");
+	}
+
+	return Strndup(start, end - start + 1);
 }

@@ -41,10 +41,14 @@ int main(int argc, char *argv[])
 
 	int accfd;
 	HttpThreadArg *arg = http_thread_arg_new();
-	while ((accfd = Accept(sockfd, arg->addr, &arg->addrlen))) {
+	while ((accfd =
+			Accept(sockfd, (struct sockaddr *) &arg->addr,
+				   &arg->addrlen)) > 0) {
 		arg->sockfd = accfd;
 		http_thread(arg);
+		arg = http_thread_arg_new();
 	}
+	http_thread_arg_free(arg);
 
 	Close(sockfd);
 	return 0;

@@ -12,16 +12,7 @@ AM_SILENT_RULES([yes])
 AC_PROG_CC
 
 
-
-
-
-
-
-
 LT_INIT
-
-
-
 
 
 AC_OUTPUT([

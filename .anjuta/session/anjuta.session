@@ -3,7 +3,7 @@ Maximized=1
 Geometry=1366x702+0+27
 
 [File Loader]
-Files=../../src/main.c#29%%%../../src/http.c#174%%%../../src/http.h#56%%%../../src/list.h#51%%%../../src/list.c#65%%%../../src/Socket.h#85%%%../../src/Socket.c#165
+Files=../../src/main.c#40%%%../../src/http.h#76%%%../../src/httpbuff.c#1%%%../../src/httpbuff.h#1%%%../../src/list.c#90%%%../../src/list.h#1%%%../../src/http.c#165
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
@@ -17,6 +17,9 @@ Working directories=../../../wdls
 Shortcut=wdls//src//wdls
 Expand=wdls%%%wdls//src%%%wdls//src//wdls%%%wdls//dist_doc
 
+[Debugger]
+Stop at beginning=2
+
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized%%%1:MinGW32:MinGW32
 Selected Configuration=Debug
@@ -24,6 +27,3 @@ BuildArgs/Default=--enable-maintainer-mode
 BuildArgs/Debug=--enable-maintainer-mode 'CFLAGS=-g -O0' 'CXXFLAGS=-g -O0' 'JFLAGS=-g -O0' 'FFLAGS=-g -O0'
 BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' 'JFLAGS=-g -pg' 'FFLAGS=-g -pg'
 BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
-
-[Debugger]
-Stop at beginning=2

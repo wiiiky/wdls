@@ -52,9 +52,11 @@ Dlist *dlist_append(Dlist * list, void *data)
 		ptr = dlist_next(ptr);
 	}
 	ptr->next = (Dlist *) Malloc(sizeof(Dlist));
+	ptr->next->data = data;
 	ptr->next->prev = ptr;
 	ptr->next->next = NULL;
-	return list;
+
+	return dlist_first(list);
 }
 
 void dlist_foreach(Dlist * list, ForeachFunc func, void *userData)
@@ -85,8 +87,9 @@ void dlist_free_full(Dlist * list, DestroyNotify destroy)
 	if (list == NULL)
 		return;
 	Dlist *ptr = dlist_first(list);
-	Dlist *tmp = ptr;
+	Dlist *tmp = NULL;
 	while (ptr) {
+		tmp = ptr;
 		ptr = dlist_next(ptr);
 		destroy(tmp->data);
 		Free(tmp);

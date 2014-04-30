@@ -63,6 +63,7 @@ typedef struct {
 } HttpHeader;
 
 HttpHeader *http_header_new(const char *name, const char *value);
+HttpHeader *http_header_parse(const char *line);
 void http_header_free(HttpHeader * header);
 
 typedef struct {
@@ -71,11 +72,19 @@ typedef struct {
 } HttpRequest;
 HttpRequest *http_request_new();
 void http_request_free(HttpRequest * req);
+void http_request_add_start_line(HttpRequest * req,
+								 HttpStartLine * startLine);
+void http_request_add_start_line_from_line(HttpRequest * req,
+										   const char *line);
+void http_request_add_header(HttpRequest * req, HttpHeader * header);
+void http_request_add_header_from_line(HttpRequest * req,
+									   const char *line);
+char *http_request_to_string(HttpRequest * req);
 
 /* 线程的参数 */
 typedef struct {
 	int sockfd;
-	struct sockaddr *addr;
+	struct sockaddr_storage addr;
 	socklen_t addrlen;
 } HttpThreadArg;
 
