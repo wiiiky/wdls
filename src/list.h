@@ -37,6 +37,7 @@ struct _Dlist {
 /* NULL */
 Dlist *dlist_new(void);
 
+Dlist *dlist_last(Dlist * lp);
 
 /* 链表中插入一个元素 */
 Dlist *dlist_append(Dlist * list, void *data);

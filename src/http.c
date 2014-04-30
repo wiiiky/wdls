@@ -18,6 +18,7 @@
  */
 #include "http.h"
 #include "httpbuff.h"
+#include "arg.h"
 
 
 #define BUFFERSIZE  (1024)
@@ -26,6 +27,15 @@ static void *httpPthread(void *arg);
 
 /* 删除字符串首尾的空格 */
 static char *deleteRedundantSpace(const char *str);
+
+/*
+ * @decription 根据指定的url以及HTTP的根目录给出资源路径
+ * 				这里如果成功返回路径字符串，否则NULL
+ * 				这里保证返回的路径在根目录下，在根目录外的
+ * 				路径被认为是非法的（潜在的安全问题）
+ * @return ...
+ */
+char *getResourcePath(const char *path);
 
 HttpThreadArg *http_thread_arg_new(void)
 {
@@ -83,7 +93,10 @@ static void *httpPthread(void *arg)
 		Free(line);
 	}
 
-	printf("%s\n",http_start_line_to_string(request->startLine));
+	/* 对请求作出相应 */
+
+	printf("%s\n", http_start_line_to_string(request->startLine));
+	printf("%s\n", getResourcePath(http_request_get_url(request)));
 	Dlist *headers = request->headers;
 	while (headers) {
 		HttpHeader *header = (HttpHeader *) headers->data;
@@ -95,7 +108,7 @@ static void *httpPthread(void *arg)
 	Close(sockfd);
 	http_request_free(request);
 	http_thread_arg_free(args);
-	printf("A HTTP thread quits\n");
+	/*printf("A HTTP thread quits\n"); */
 	return NULL;
 }
 
@@ -108,38 +121,39 @@ HttpStartLine *http_start_line_new(HttpMethod method,
 	line->version = version;
 	return line;
 }
-char *http_start_line_to_string(HttpStartLine *line)
+
+char *http_start_line_to_string(HttpStartLine * line)
 {
-	if(line==NULL){
+	if (line == NULL) {
 		return NULL;
 	}
-	const char *method=NULL;
-	switch(line->method){
-		case HTTP_GET:
-			method="GET";
-			break;
-		case HTTP_POST:
-			method="POST";
-			break;
-		default:
-			return NULL;
+	const char *method = NULL;
+	switch (line->method) {
+	case HTTP_GET:
+		method = "GET";
+		break;
+	case HTTP_POST:
+		method = "POST";
+		break;
+	default:
+		return NULL;
 	}
 
-	const char *version=NULL;
-	switch(line->version){
-		case HTTP_1_1:
-			version="HTTP/1.1";
-			break;
-		case HTTP_1_0:
-			version="HTTP/1.0";
-			break;
-		default:
-			return NULL;
+	const char *version = NULL;
+	switch (line->version) {
+	case HTTP_1_1:
+		version = "HTTP/1.1";
+		break;
+	case HTTP_1_0:
+		version = "HTTP/1.0";
+		break;
+	default:
+		return NULL;
 	}
 
-	int len=strlen(method)+strlen(version)+4;
-	char *string=(char*)Malloc(sizeof(char)*len);
-	snprintf(string,len,"%s %s %s",method,line->url,version);
+	int len = strlen(method) + strlen(version) + strlen(line->url) + 4;
+	char *string = (char *) Malloc(sizeof(char) * len);
+	snprintf(string, len, "%s %s %s", method, line->url, version);
 
 	return string;
 }
@@ -222,9 +236,14 @@ HttpStartLine *http_start_line_parse(const char *line)
 	if (first == NULL || second == NULL || third == NULL)
 		goto OUT;
 
-	/* 目前只支持GET和HTTP/1.1 */
-	if (Strcmp(first, "GET") || Strcmp(third, "HTTP/1.1"))
+	/* 目前只支持GET和HTTP/1.1 HTTP/1.0 */
+	if (Strcasecmp(first, "GET")) {
 		goto OUT;
+	}
+
+	if (Strcasecmp(third, "HTTP/1.1") && Strcasecmp(third, "HTTP/1.0")) {
+		goto OUT;
+	}
 
 	startLine = http_start_line_new(HTTP_GET, second, HTTP_1_1);
   OUT:
@@ -334,8 +353,8 @@ HttpHeader *http_header_parse(const char *line)
 		Free(value);
 		return NULL;
 	}
-	char *name_d=deleteRedundantSpace(name);
-	char *value_d=deleteRedundantSpace(value);
+	char *name_d = deleteRedundantSpace(name);
+	char *value_d = deleteRedundantSpace(value);
 	HttpHeader *header = http_header_new(name_d, value_d);
 	Free(name_d);
 	Free(value_d);
@@ -358,7 +377,7 @@ static char *deleteRedundantSpace(const char *str)
 				end = str;
 			}
 		} else if (*str != ' ') {
-			end = str;		/* 最后一个不是空格的位置 */
+			end = str;			/* 最后一个不是空格的位置 */
 		}
 		str++;
 	}
@@ -367,4 +386,133 @@ static char *deleteRedundantSpace(const char *str)
 	}
 
 	return Strndup(start, end - start + 1);
+}
+
+const char *http_request_find_header(HttpRequest * req, const char *name)
+{
+	if (req == NULL || name == NULL) {
+		return NULL;
+	}
+
+	Dlist *lp = req->headers;
+	while (lp) {
+		HttpHeader *hdr = (HttpHeader *) lp->data;
+		if (Strcasecmp(http_header_get_name(hdr), name) == 0) {
+			return hdr->value;
+		}
+		lp = dlist_next(lp);
+	}
+	return NULL;
+}
+
+/*
+ * @description 判断是否为.
+ * @return 是返回1，否则返回0
+ */
+int isDot(const char *s)
+{
+	return s[0] == '.' && (s[1] == '/' || s[1] == '\0');
+}
+
+/*
+ * @description 判断是否为..
+ * @return 是返回1，否则返回0
+ */
+int isDotDot(const char *s)
+{
+	return s[0] == '.' && s[1] == '.' && (s[2] == '/' || s[2] == '\0');
+}
+
+/*
+ * 连接字符串，释放原来的s1
+ */
+char *strJoin(char *s1, char *s2)
+{
+	if (s1 == NULL) {
+		return Strdup(s2);
+	} else if (s2 == NULL) {
+		return s1;
+	}
+	int len = strlen(s2) + strlen(s1) + 2;
+	char *res = (char *) Malloc(sizeof(char) * len);
+	snprintf(res, len, "%s/%s", s1, s2);
+	Free(s1);
+	return res;
+}
+
+/*
+ * 根据HTTP的根目录以及URL指定的路径
+ * 获取资源的路径
+ */
+char *getResourcePath(const char *path)
+{
+	if (path == NULL) {
+		return NULL;
+	}
+	/* 使用链表来实现栈 */
+	Dlist *stack = dlist_new();
+	const char *strips = NULL;
+
+	char *dir = NULL;
+
+	while (*path) {
+		if (*path != '/') {
+			dlist_free_full(stack, Free);
+			return NULL;
+		}
+		path++;
+		strips = strchr(path, '/');
+		if (strips) {
+			dir = Strndup(path, strips - path);
+			path = strips;
+		} else {
+			dir = Strdup(path);
+			while (*path) {
+				path++;
+			}
+		}
+		if (dir[0] == '\0') {
+			break;
+		}
+		if (isDot(dir)) {
+			Free(dir);
+			continue;
+		} else if (isDotDot(dir)) {
+			Dlist *last = dlist_last(stack);
+			if (last == NULL) {
+				return NULL;
+			}
+			if (last->prev == NULL) {
+				stack = NULL;
+				Free(last->data);
+				Free(last);
+			} else {
+				last->prev = NULL;
+				Free(last->data);
+				Free(last);
+			}
+		} else {
+			stack = dlist_append(stack, dir);
+		}
+	}
+	const char *rootFile = "index.html";
+	char *target = NULL;
+	const char *root = arg_get_root();
+	int rootLen = strlen(root);
+	int targetLen = rootLen + 1;
+	if (stack == NULL) {
+		targetLen += 11;
+		target = (char *) Malloc(sizeof(char) * targetLen);
+		snprintf(target, targetLen, "%s/%s", root, rootFile);
+		return target;
+	}
+	target = Strdup(root);
+	Dlist *ptr = stack;
+	while (ptr) {
+		char *dir = (char *) ptr->data;
+		target = strJoin(target, dir);
+		ptr = dlist_next(ptr);
+	}
+	dlist_free_full(stack, Free);
+	return target;
 }

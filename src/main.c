@@ -20,7 +20,8 @@
 #include "arg.h"
 #include "http.h"
 
-static void signal_handler(int sigid);
+static void signalHandler(int sigid);
+static void echoListening();
 
 #define BACKLOG	 (10)
 
@@ -36,8 +37,10 @@ int main(int argc, char *argv[])
 	Bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
 	Listen(sockfd, BACKLOG);
 
+	echoListening();
+
 	/* 注册信号CTRL+C的回调函数 */
-	Signal(SIGINT, signal_handler);
+	Signal(SIGINT, signalHandler);
 
 	int accfd;
 	HttpThreadArg *arg = http_thread_arg_new();
@@ -55,9 +58,16 @@ int main(int argc, char *argv[])
 }
 
 
-static void signal_handler(int sigid)
+static void signalHandler(int sigid)
 {
 	printf("SIGINT is caught!\n");
 	printf("Cancelled by user!\n");
 	exit(0);
+}
+
+static void echoListening()
+{
+	printf(" Server address: http://localhost:%d\n", arg_get_port());
+	printf(" Server root path: %s\n", arg_get_root());
+	printf(" Server running... press ctrl+c to stop.\n");
 }

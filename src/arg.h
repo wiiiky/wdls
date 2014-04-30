@@ -21,10 +21,6 @@
  * 解析命令行参数
  */
 
-typedef enum {
-	ARG_PORT = 'p',				/* 端口号 */
-} Argument;
-
 
 /*
  * @description 初始化解析命令行参数
@@ -38,3 +34,9 @@ void arg_init(int argc, char *argv[]);
  * @return 端口号
  */
 unsigned short arg_get_port(void);
+
+/*
+ * @description 获取HTTP服务的根目录
+ * @return ...
+ */
+const char *arg_get_root(void);

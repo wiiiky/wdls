@@ -95,3 +95,15 @@ void dlist_free_full(Dlist * list, DestroyNotify destroy)
 		Free(tmp);
 	}
 }
+
+Dlist *dlist_last(Dlist * lp)
+{
+	if (lp == NULL) {
+		return NULL;
+	}
+
+	while (dlist_next(lp)) {
+		lp = dlist_next(lp);
+	}
+	return lp;
+}

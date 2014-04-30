@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
@@ -95,3 +96,6 @@ int Pthread_detach(pthread_t thread);
 /* sighandler_t signal(int signum, sighandler_t handler); */
 typedef void (*sighandler_t) (int);
 sighandler_t Signal(int signum, sighandler_t handler);
+
+/* int strcasecmp(const char *s1, const char *s2); */
+int Strcasecmp(const char *s1, const char *s2);

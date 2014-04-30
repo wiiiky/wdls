@@ -195,3 +195,15 @@ sighandler_t Signal(int signum, sighandler_t handler)
 	}
 	return prev;
 }
+
+int Strcasecmp(const char *s1, const char *s2)
+{
+	if (s1 == NULL && s2 == NULL) {
+		return 0;
+	}
+
+	if (!(s1 && s2)) {
+		return 1;
+	}
+	return strcasecmp(s1, s2);
+}
