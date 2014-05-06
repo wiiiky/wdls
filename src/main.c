@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 		http_thread(arg);
 		arg = http_thread_arg_new();
 	}
+	perror("What?");
 	http_thread_arg_free(arg);
 
 	Close(sockfd);

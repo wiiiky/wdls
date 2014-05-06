@@ -552,13 +552,18 @@ static void echoToClient(int sockfd, const char *path)
 	}
 
 	const char *res = response200();
-	Write(sockfd, res, strlen(res));
+	if(Write(sockfd, res, strlen(res))<0){
+		goto OUT;
+	}
 
 	ssize_t readn;
 	char buf[1024];
 	while ((readn = Read(fd, buf, 1024)) > 0) {
-		Write(sockfd, buf, readn);
+		if(Write(sockfd, buf, readn)<0){
+			goto OUT;
+		}
 	}
+OUT:
 	Close(fd);
 }
 
