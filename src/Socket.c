@@ -2,12 +2,12 @@
  * Socket.c
  *
  * Copyright (C) 2014 - Wiky L
- *
+	 *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *
+	 *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -35,6 +35,19 @@ ssize_t Read(int fildes, void *buf, size_t nbytes)
 		sys_exit("read error");
 	}
 	return readn;
+}
+
+ssize_t Write(int fildes, const void *buf, size_t nbyte)
+{
+	ssize_t writen;
+  AGAIN:
+	writen = write(fildes, buf, nbyte);
+	if (G_UNLIKELY(writen < 0)) {
+		if (errno == EAGAIN)
+			goto AGAIN;
+		return -1;
+	}
+	return writen;
 }
 
 int Socket(int family, int type, int protocol)

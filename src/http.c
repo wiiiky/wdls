@@ -19,6 +19,11 @@
 #include "http.h"
 #include "httpbuff.h"
 #include "arg.h"
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 
 
 #define BUFFERSIZE  (1024)
@@ -35,7 +40,26 @@ static char *deleteRedundantSpace(const char *str);
  * 				路径被认为是非法的（潜在的安全问题）
  * @return ...
  */
-char *getResourcePath(const char *path);
+static char *getResourcePath(const char *path);
+
+/*
+ * @description 将指定资源返回给客户端
+ *				如果没有找到资源，返回一个404页面
+ * @param sockfd 网络套接字
+ * @param path 资源路径
+ */
+static void echoToClient(int sockfd, const char *path);
+
+
+/*
+ * @description 生成HTTP响应404错误
+ */
+static const char *response404();
+/*
+ * @decription 生成HTTP响应200
+ */
+static char *response200();
+
 
 HttpThreadArg *http_thread_arg_new(void)
 {
@@ -65,6 +89,7 @@ static void *httpPthread(void *arg)
 {
 	HttpThreadArg *args = (HttpThreadArg *) arg;
 	int sockfd = args->sockfd;
+	struct sockaddr_in *addr = (struct sockaddr_in *) &args->addr;
 	socklen_t addrlen = args->addrlen;
 
 	char *line = NULL;
@@ -94,15 +119,12 @@ static void *httpPthread(void *arg)
 	}
 
 	/* 对请求作出相应 */
+	char *path = getResourcePath(http_request_get_url(request));
+	char *remote = inet_ntoa(addr->sin_addr);
+	printf("\t%s:%d requests %s\n", remote, ntohs(addr->sin_port), path);
 
-	printf("%s\n", http_start_line_to_string(request->startLine));
-	printf("%s\n", getResourcePath(http_request_get_url(request)));
-	Dlist *headers = request->headers;
-	while (headers) {
-		HttpHeader *header = (HttpHeader *) headers->data;
-		printf("%s:%s\n", header->name, header->value);
-		headers = dlist_next(headers);
-	}
+	echoToClient(sockfd, path);
+	Free(path);
 
   CLOSE:
 	Close(sockfd);
@@ -409,7 +431,7 @@ const char *http_request_find_header(HttpRequest * req, const char *name)
  * @description 判断是否为.
  * @return 是返回1，否则返回0
  */
-int isDot(const char *s)
+static int isDot(const char *s)
 {
 	return s[0] == '.' && (s[1] == '/' || s[1] == '\0');
 }
@@ -418,7 +440,7 @@ int isDot(const char *s)
  * @description 判断是否为..
  * @return 是返回1，否则返回0
  */
-int isDotDot(const char *s)
+static int isDotDot(const char *s)
 {
 	return s[0] == '.' && s[1] == '.' && (s[2] == '/' || s[2] == '\0');
 }
@@ -426,7 +448,7 @@ int isDotDot(const char *s)
 /*
  * 连接字符串，释放原来的s1
  */
-char *strJoin(char *s1, char *s2)
+static char *strJoin(char *s1, char *s2)
 {
 	if (s1 == NULL) {
 		return Strdup(s2);
@@ -444,7 +466,7 @@ char *strJoin(char *s1, char *s2)
  * 根据HTTP的根目录以及URL指定的路径
  * 获取资源的路径
  */
-char *getResourcePath(const char *path)
+static char *getResourcePath(const char *path)
 {
 	if (path == NULL) {
 		return NULL;
@@ -515,4 +537,49 @@ char *getResourcePath(const char *path)
 	}
 	dlist_free_full(stack, Free);
 	return target;
+}
+
+/* 向客户端返回请求的资源 */
+static void echoToClient(int sockfd, const char *path)
+{
+	/* 这里不用包裹函数，因为要用打开是否成功来判断资源是否有效 */
+	int fd = open(path, O_RDONLY);
+	if (fd <= 0) {
+		/* 指定的资源没有找到，返回404错误 */
+		const char *res = response404();
+		Write(sockfd, res, strlen(res));
+		return;
+	}
+
+	const char *res = response200();
+	Write(sockfd, res, strlen(res));
+
+	ssize_t readn;
+	char buf[1024];
+	while ((readn = Read(fd, buf, 1024)) > 0) {
+		Write(sockfd, buf, readn);
+	}
+	Close(fd);
+}
+
+/*
+ * @description 生成HTTP响应404错误
+ */
+static const char *response404()
+{
+	char *response = "HTTP/1.1 404 not found\r\n"
+		"Server:WDLS/1.0.0(Unix)\r\n\r\n"
+		"<html><body><h>404</h></body></html>";
+
+	return response;
+}
+
+/*
+ * @decription 生成HTTP响应200
+ */
+static char *response200()
+{
+	char *response = "HTTP/1.1 200 OK\r\n"
+		"Content-type:*/*\r\n" "Server:WDLS/1.0.0(Unix)\r\n\r\n";
+	return response;
 }

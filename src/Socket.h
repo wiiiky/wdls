@@ -45,6 +45,9 @@
 /* ssize_t read(int fildes, void *buf, size_t nbyte); */
 ssize_t Read(int fildes, void *buf, size_t nbytes);
 
+/* ssize_t write(int fildes, const void *buf, size_t nbyte); */
+ssize_t Write(int fildes, const void *buf, size_t nbyte);
+
 /* int socket(int family,int type,int protocl) */
 int Socket(int family, int type, int protocl);
 
