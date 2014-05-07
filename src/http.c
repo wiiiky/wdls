@@ -2,12 +2,12 @@
  * http.c
  *
  * Copyright (C) 2014 - Wiky L
- *
+	 *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *
+	 *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -48,7 +48,7 @@ static char *getResourcePath(const char *path);
  * @param sockfd 网络套接字
  * @param path 资源路径
  */
-static void echoToClient(int sockfd, const char *path);
+static void echoToClient(int sockfd, HttpRequest * request);
 
 
 /*
@@ -57,8 +57,17 @@ static void echoToClient(int sockfd, const char *path);
 static const char *response404();
 /*
  * @decription 生成HTTP响应200
+ * @param length 文件长度
+ * @return 动态分配的字符串
  */
-static char *response200();
+static char *response200(off_t length);
+/*
+ * @description 生成HTTP响应206，断点续传
+ * @param length 文件长度
+ * @param postion 断点续传位置
+ * @return 动态分配的字符串
+ */
+static char *response206(off_t length, off_t position);
 
 
 HttpThreadArg *http_thread_arg_new(void)
@@ -123,7 +132,7 @@ static void *httpPthread(void *arg)
 	char *remote = inet_ntoa(addr->sin_addr);
 	printf("\t%s:%d requests %s\n", remote, ntohs(addr->sin_port), path);
 
-	echoToClient(sockfd, path);
+	echoToClient(sockfd, request);
 	Free(path);
 
   CLOSE:
@@ -539,11 +548,52 @@ static char *getResourcePath(const char *path)
 	return target;
 }
 
-/* 向客户端返回请求的资源 */
-static void echoToClient(int sockfd, const char *path)
+/* 获取文件长度，获取失败，无论什么原因，返回0 */
+static off_t getFileLength(int fd)
 {
+	off_t length = lseek(fd, 0, SEEK_END);
+	/* 重置到文件起始位置 */
+	lseek(fd, 0, SEEK_SET);
+	if (length < 0) {
+		return 0;
+	}
+	return length;
+}
+
+/*
+ * 获取断点续传的位置 bytes=12312412-
+ * 这里要求range必须是形如bytes=12341-的字符串
+ * 
+ * 在实际生产环境中，RANGE是可以指定起始和结束位置的；比如bytes=1234-341234
+ * 但这里我只处理起始位置，假设所有断点续传都是从一个位置到该资源结束。这也是绝大多数情况
+ */
+static unsigned int getRangePosition(const char *range)
+{
+	if (range == NULL) {
+		return 0;
+	}
+	char *ptr = strstr(range, "bytes=");
+	if (ptr == NULL) {
+		return 0;
+	}
+	ptr = ptr + 6;
+	int position = atoi(ptr);
+	return position;
+}
+
+static inline void setFilePosition(int fd, off_t pos)
+{
+	lseek(fd, pos, SEEK_SET);
+}
+
+/* 向客户端返回请求的资源 */
+static void echoToClient(int sockfd, HttpRequest * request)
+{
+	char *path = getResourcePath(http_request_get_url(request));
 	/* 这里不用包裹函数，因为要用打开是否成功来判断资源是否有效 */
 	int fd = open(path, O_RDONLY);
+	Free(path);
+
 	if (fd <= 0) {
 		/* 指定的资源没有找到，返回404错误 */
 		const char *res = response404();
@@ -551,19 +601,33 @@ static void echoToClient(int sockfd, const char *path)
 		return;
 	}
 
-	const char *res = response200();
-	if(Write(sockfd, res, strlen(res))<0){
+	const char *range = http_request_find_header(request, "RANGE");
+	off_t length = getFileLength(fd);
+
+	char *res = NULL;
+	if (range == NULL) {
+		/* 没有指定数据位置，不是断点 */
+		res = response200(length);
+	} else {
+		/* 断点续传，返回206 */
+		off_t position = getRangePosition(range);
+		res = response206(length, position);
+		setFilePosition(fd, position);
+	}
+
+	if (Write(sockfd, res, strlen(res)) < 0) {
 		goto OUT;
 	}
 
 	ssize_t readn;
 	char buf[1024];
 	while ((readn = Read(fd, buf, 1024)) > 0) {
-		if(Write(sockfd, buf, readn)<0){
+		if (Write(sockfd, buf, readn) < 0) {
 			goto OUT;
 		}
 	}
-OUT:
+  OUT:
+	Free(res);
 	Close(fd);
 }
 
@@ -582,9 +646,30 @@ static const char *response404()
 /*
  * @decription 生成HTTP响应200
  */
-static char *response200()
+static char *response200(off_t length)
 {
-	char *response = "HTTP/1.1 200 OK\r\n"
-		"Content-type:*/*\r\n" "Server:WDLS/1.0.0(Unix)\r\n\r\n";
-	return response;
+	char response[256];
+	snprintf(response, 256, "HTTP/1.1 200 OK\r\n"
+			 "Content-Type: */*\r\n" "Server: WDLS/1.0.0(Unix)\r\n"
+			 "Content-Length: %ld\r\n"
+			 "Connection: Close\r\n\r\n", length);
+	return Strdup(response);
+}
+
+/*
+ * @description 生成HTTP响应206
+ * @XXX Content-Range: bytes 123-999/1000
+ * 这里的1000是文件的总长度，而999是文件最大的偏移量，
+ * 就同字符串长度len和最后引用位置是len-1
+ */
+static char *response206(off_t length, off_t position)
+{
+	char response[256];
+	snprintf(response, 256, "HTTP/1.1 206 All Right\r\n"
+			 "Content-Type: */*\r\n" "Server: WDLS/1.0.0(Unix)\r\n"
+			 "Content-Length: %ld\r\n"
+			 "Content-Range: bytes %ld-%ld/%ld\r\n"
+			 "Connection: Close\r\n\r\n",
+			 length, position, length - 1, length);
+	return Strdup(response);
 }

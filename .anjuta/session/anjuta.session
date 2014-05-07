@@ -3,7 +3,7 @@ Maximized=1
 Geometry=1366x702+0+27
 
 [File Loader]
-Files=../../src/Socket.c#52
+Files=../../src/Socket.c#35%%%../../src/http.c#652
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
