@@ -30,6 +30,9 @@ int main(int argc, char *argv[])
 	arg_init(argc, argv);
 
 	int sockfd = Socket(AF_INET, SOCK_STREAM, 0);
+	/* 设置地址重利用，避免重启程序后端口未被释放 */
+	int opt=1;
+	setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&opt,sizeof(opt));
 
 	struct sockaddr_in addr;
 	memset(&addr, 0, sizeof(addr));
