@@ -25,8 +25,6 @@ wdls_SOURCES = \
 	http.c \
 	httpbuff.h \
 	httpbuff.c \
-	utils.h \
-	utils.c \
 	list.h \
 	list.c
 
