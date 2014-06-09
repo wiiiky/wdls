@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
 		http_thread(arg);
 		arg = http_thread_arg_new();
 	}
+	/* should never come here */
 	perror("What?");
 	http_thread_arg_free(arg);
 
